@@ -1,21 +1,28 @@
-﻿using System.Collections;
+﻿using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GravForce : MonoBehaviour
 {
-    public GameObject planetObj;
+    public GameObject planetObj; // Reference to the 3d model of a planet(star)
+    public Slider timeSlider;
 
-    private const float velConst = 0.05f;
-    private const float gravConst = 1;
+    private const float gravConst = 5f;
+    private const float velConst = 0.1f;
+    private const float timeConst = 10f;
     public static float time = 0;
 
-    public static List<PlanetInfo> planets;
+    public static List<PlanetInfo> planets; // Physics information of all planets
     public static bool canPlay = false;
+    public static Vector3[] initPoss; // Initial positions before begining the animations
+
+    private List<int> planetsToJoin; // Planet ids that must be joined
 
     private void Awake()
     {
         planets = new List<PlanetInfo>();
+        planetsToJoin = new List<int>();
     }
 
     private void Update()
@@ -29,7 +36,7 @@ public class GravForce : MonoBehaviour
         {
             time += Time.deltaTime;
 
-            if (planets.Count > 1)
+            if (planets.Count >= 1)
             {
                 Act();
                 ManageCollision();
@@ -69,7 +76,9 @@ public class GravForce : MonoBehaviour
 
             Vector3 acceleration = planets[i].gravForce / planets[i].mass;
 
-            Vector3 newPos = planets[i].pos + (planets[i].initVel * time) * velConst + acceleration * Mathf.Pow(time, 2) / 2;
+            float newTConst = timeSlider.value * timeConst;
+            //Vector3 newPos = transform.GetChild(i).position + (planets[i].initVel * Time.deltaTime) + acceleration * Mathf.Pow(Time.deltaTime, 2) / 2;
+            Vector3 newPos = planets[i].pos + (planets[i].initVel * velConst * Time.deltaTime * newTConst) + acceleration * Mathf.Pow(Time.deltaTime * newTConst, 2) / 2;
 
             transform.GetChild(i).position = newPos;
             planets[i].pos = newPos;
@@ -80,20 +89,25 @@ public class GravForce : MonoBehaviour
     {
         int objCount = planets.Count;
 
-        for (int i = 0; i < objCount; i++)
+        for (int i = 0; i < objCount - 1; i++)
         {
             Vector3 gravForce = Vector3.zero;
 
-            for (int j = 0; j < objCount; j++)
+            for (int j = objCount - 1; j > i; j--)
             {
-                if (j != i)
-                {
+                //if (j != i)
+                //{
                     Vector3 dir = planets[i].pos - planets[j].pos;
                     float dist = Mathf.Pow(dir.x, 2) + Mathf.Pow(dir.y, 2) + Mathf.Pow(dir.z, 2);
                     // If the objects collided, replace them with an object of their combination 
                     float collisionDist = (transform.GetChild(i).localScale.x + transform.GetChild(j).localScale.x) / 2;
-                    if (Mathf.Sqrt(dist) < collisionDist / 4)
+                    //Debug.Log(dist + " < " + collisionDist);
+                    if (Mathf.Sqrt(dist) < collisionDist)
                     {
+                        planetsToJoin.Add(i);
+                        planetsToJoin.Add(j);
+                        
+                        /*
                         float combMass = planets[i].mass + planets[j].mass;
                         Vector3 combPos = (planets[i].pos + planets[j].pos) / 2;
                         Vector3 combGravForce = planets[i].gravForce + planets[j].gravForce;
@@ -115,10 +129,59 @@ public class GravForce : MonoBehaviour
                         newObj.transform.localScale = new Vector3(radius, radius, radius);
 
                         return;
-                    }
+                        */
+                    //}
                 }
             }
         }
+
+        int length = planetsToJoin.Count;
+
+        if (length >= 1)
+        {
+            Time.timeScale = 0;
+            planetsToJoin.Clear();
+            return;
+        }
+
+        if (length > 1)
+        {
+            Debug.Log(length);
+            planetsToJoin.Sort();
+
+            float combMass = 0;
+            Vector3 combPos = Vector3.zero;
+            Vector3 combGravForce = Vector3.zero;
+            Vector3 combInitVel = Vector3.zero;
+
+            for (int i = length - 1; i >= 0; i--)
+            {
+                int id = planetsToJoin[i];
+
+                combMass += planets[id].mass;
+
+                combPos += planets[id].pos;
+                combGravForce += planets[id].gravForce;
+                combInitVel += planets[id].initVel;
+                
+                planetsToJoin.Remove(id);
+                planets.Remove(planets[id]);
+                Destroy(transform.GetChild(id).gameObject);
+            }
+
+            combPos /= length;
+
+            planets.Add(new PlanetInfo(combMass, combPos, combGravForce, combInitVel));
+            GameObject newObj = Instantiate(planetObj, combPos, Quaternion.identity, transform);
+
+            Material newMat = new Material(Shader.Find("Specular"));
+            newMat.color = Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
+            newObj.GetComponent<Renderer>().material = newMat;
+            newObj.GetComponent<TrailRenderer>().material = newMat;
+
+            float radius = CalcRadius(combMass);
+            newObj.transform.localScale = new Vector3(radius, radius, radius);
+        } 
     }
 
     // M = V * Rho, is used to calculate the merged planet radius

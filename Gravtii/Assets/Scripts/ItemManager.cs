@@ -1,11 +1,11 @@
 ﻿using System.Linq;
-using System.Collections;
-using System.Collections.Generic;
+using System.Globalization;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class ItemManager : MonoBehaviour
 {
+    // Reference to the UI fields
     private InputField initVelInput;
 
     private Slider massSlider;
@@ -22,6 +22,7 @@ public class ItemManager : MonoBehaviour
 
     private void Awake()
     {
+        // Initialize UI components
         initVelInput = transform.GetChild(0).GetComponent<InputField>();
 
         massSlider = transform.GetChild(1).GetComponent<Slider>();
@@ -44,6 +45,7 @@ public class ItemManager : MonoBehaviour
 
     private void Start()
     {
+        // Reference to the functions that will be called when a UI value changes
         initVelInput.onEndEdit.AddListener(delegate { UpdateInitVel(); });
 
         massSlider.onValueChanged.AddListener(delegate { UpdateMass(); });
@@ -54,10 +56,10 @@ public class ItemManager : MonoBehaviour
         exitButton.onClick.AddListener(delegate { DeleteItem(); });
     }
 
-    // Update initial velocity of the planet
+    // Update initial velocity of the planet (called when UI changes)
     private void UpdateInitVel()
     {
-        float[] vels = initVelInput.text.Split(' ').Select(item => float.Parse(item)).ToArray();
+        float[] vels = initVelInput.text.Split(' ').Select(item => float.Parse(item, CultureInfo.InvariantCulture)).ToArray();
 
         if (vels.Length >= 3)
         {
@@ -116,6 +118,7 @@ public class ItemManager : MonoBehaviour
         planets.GetChild(id).position = new Vector3(planets.GetChild(id).position.x, planets.GetChild(id).position.y, posZSlider.value);
     }
 
+    // Delete a UI element of a planet, also remove sthe planet
     private void DeleteItem()
     {
         int id = transform.GetSiblingIndex();
