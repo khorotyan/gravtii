@@ -1,0 +1,34 @@
+_______________________ v0.01.000 _______________________
+
+Contains the main components of the program
+
+https://bitbucket.org/BassV/gravtii/commits/5b7b246ae5892946c77f8c5bd527a10048024066
+
+_______________________ v0.02.000 _______________________
+
+Added / Fixed
+1. Contains a more complex and detailed collision checking (however it is a little buggy that is why
+          simulation pauses after the first collision
+2. Trails added to the stars
+3. Time can be sped up or slowed down
+4. Some calculations were fixed
+
+Issuses
+1. Calculations are still wrong
+2. Background stars were removed because of some bugs
+3. The project cannot be built
+4. Time speed up/slow down is buggy
+
+https://bitbucket.org/BassV/gravtii/commits/05446de05205737466c11364c95a91c8e4cb9358
+
+_______________________ v0.03.000 _______________________
+
+Added / Fixed
+1. Third dimension removed from UI
+2. Velocity issue fixed 
+3. Trails are now rendered inly when in the animation mode 
+4. The animation can be paused and resumed
+5. Planet spawn location and move limits were adjusted
+6. The time between the updates is fixed instead of depending on the number of frames per second
+7. UI item colors change depending on the planet color, helps to differentiate between which UI belongs to which planet
+8. Many other small fixes and improvements

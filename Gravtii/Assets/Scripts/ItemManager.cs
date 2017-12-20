@@ -30,6 +30,7 @@ public class ItemManager : MonoBehaviour
         posXSlider.value = UIController.posX;
         posYSlider = transform.GetChild(3).GetComponent<Slider>();
         posZSlider = transform.GetChild(4).GetComponent<Slider>();
+        posZSlider.value = UIController.posZ;
 
         massText = transform.GetChild(5).GetComponent<Text>();
         massText.text = massSlider.value.ToString();
@@ -59,13 +60,16 @@ public class ItemManager : MonoBehaviour
     // Update initial velocity of the planet (called when UI changes)
     private void UpdateInitVel()
     {
-        float[] vels = initVelInput.text.Split(' ').Select(item => float.Parse(item, CultureInfo.InvariantCulture)).ToArray();
+        string inputs = initVelInput.text;
+        inputs = inputs.Trim();
 
-        if (vels.Length >= 3)
+        float[] vels = inputs.Split(' ').Select(item => float.Parse(item, CultureInfo.InvariantCulture)).ToArray();
+
+        if (vels.Length >= 2)
         {
             int id = transform.GetSiblingIndex();
 
-            GravForce.planets[id].initVel = new Vector3(vels[0], vels[1], vels[2]);
+            GravForce.planets[id].initVel = new Vector3(vels[0], 0, vels[1]);
         }
     }
 
