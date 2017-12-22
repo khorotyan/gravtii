@@ -7,6 +7,7 @@ using UnityEngine.UI;
 public class UIController : MonoBehaviour
 {
     public Toggle pauseToggle;
+    public Toggle rungeToggle;
     public GameObject blocker; // Reference to the UI blocker when animation begins
 
     [Space(10)]
@@ -16,6 +17,7 @@ public class UIController : MonoBehaviour
     [Space(10)]
 
     public Transform planetsParent; // Reference to the container of the planets
+    public static GameObject plp;
     public GameObject planetObj; // Reference to the 3d model of the planet
 
     public static float posX = 0;
@@ -25,14 +27,25 @@ public class UIController : MonoBehaviour
     private List<Vector3> poss = new List<Vector3>();
     private List<Vector3> velss = new List<Vector3>();
 
-    public void Start()
+    private void Awake()
+    {
+        //plp = planetsParent.gameObject;
+    }
+
+    private void Start()
     {
         pauseToggle.onValueChanged.AddListener(delegate { PauseResume(); });
+        rungeToggle.onValueChanged.AddListener(delegate { OnCalcModeChange(); });
     }
 
     public void PauseResume()
     {
         Time.timeScale = Time.timeScale == 1 ? 0 : 1;
+    }
+
+    public void OnCalcModeChange()
+    {
+        GravForce.isRunge = !GravForce.isRunge;
     }
 
     public void AddNewItem()

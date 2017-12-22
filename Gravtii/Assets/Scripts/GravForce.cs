@@ -11,8 +11,10 @@ public class GravForce : MonoBehaviour
 
     private const float gravConst = 5f;
     private const float velConst = 0.1f;
-    private const float timeConst = 4f;
+    private float timeConst = 15f;
+
     public static float time = 0;
+    public static bool isRunge = true;
 
     public static List<PlanetInfo> planets; // Physics information of all planets
     public static bool canPlay = false;
@@ -57,42 +59,74 @@ public class GravForce : MonoBehaviour
 
         for (int i = 0; i < objCount; i++)
         {
-            Vector3 gravForce = Vector3.zero;
-
-            for (int j = 0; j < objCount; j++)
+            if (isRunge)
             {
-                if (j != i)
+                timeConst = 15;
+
+                Vector3 v = Vector3.zero;
+
+                for (int j = 0; j < objCount; j++)
                 {
-                    Vector3 dir = planets[i].pos - planets[j].pos;
-                    float dist = Mathf.Pow(dir.x, 2) + Mathf.Pow(dir.y, 2) + Mathf.Pow(dir.z, 2); // Power of distance between objects
-
-                    if (dist < 0.01f)
+                    if (j != i)
                     {
-                        dist = 0.01f;
-                        Debug.Log("Planet distance is too small");
+                        float posXDiff = planets[j].pos.x - planets[i].pos.x;
+                        float posZDiff = planets[j].pos.z - planets[i].pos.z;
+
+                        float v_x = planets[j].mass * (posXDiff) / Mathf.Pow(Mathf.Pow(posXDiff, 2) + Mathf.Pow(posZDiff, 2), 1.5f);
+                        float v_z = planets[j].mass * (posZDiff) / Mathf.Pow(Mathf.Pow(posXDiff, 2) + Mathf.Pow(posZDiff, 2), 1.5f);
+
+                        float newTConst = timeSlider.value * timeConst;
+
+                        v += new Vector3(v_x, 0, v_z) * newTConst;
                     }
-
-                    float forceMagnitude = gravConst * planets[i].mass * planets[j].mass / dist; // Magnitude of the force
-                    Vector3 dirNormalized = dir / Mathf.Sqrt(dist); // Direction
-
-                    // Apply the gravitational force of j-th object to i-th object's total force
-                    gravForce -= dirNormalized * forceMagnitude;
-
-                    //ManageCollision();
                 }
+
+                planets[i].pos += (v + planets[i].initVel) * Time.fixedDeltaTime;
+                planets[i].initVel += v * Time.fixedDeltaTime;
+
+                transform.GetChild(i).position = planets[i].pos;
             }
+            else
+            {
+                timeConst = 4f;
 
-            planets[i].gravForce = gravForce;
+                Vector3 gravForce = Vector3.zero;
 
-            Vector3 acceleration = planets[i].gravForce / planets[i].mass;
+                for (int j = 0; j < objCount; j++)
+                {
+                    if (j != i)
+                    {
+                        Vector3 dir = planets[i].pos - planets[j].pos;
+                        float dist = Mathf.Pow(dir.x, 2) + Mathf.Pow(dir.z, 2); // Power of distance between objects
 
-            float newTConst = timeSlider.value * timeConst;
-            //Vector3 newPos = transform.GetChild(i).position + (planets[i].initVel * Time.fixedDeltaTime) + acceleration * Mathf.Pow(Time.fixedDeltaTime, 2) / 2;
-            Vector3 newPos = planets[i].pos + (planets[i].initVel * velConst * Time.fixedDeltaTime * newTConst) + acceleration * Mathf.Pow(Time.fixedDeltaTime * newTConst, 2) / 2;
+                        if (dist < 0.01f)
+                        {
+                            dist = 0.01f;
+                            Debug.Log("Planet distance is too small");
+                        }
 
-            transform.GetChild(i).position = newPos;
-            planets[i].initVel = planets[i].initVel + acceleration * Time.fixedDeltaTime * newTConst;
-            planets[i].pos = newPos;
+                        float forceMagnitude = gravConst * planets[i].mass * planets[j].mass / dist; // Magnitude of the force
+                        Vector3 dirNormalized = dir / Mathf.Sqrt(dist); // Direction
+
+                        // Apply the gravitational force of j-th object to i-th object's total force
+                        gravForce -= dirNormalized * forceMagnitude;
+
+                        //ManageCollision();
+                    }
+                }
+
+                planets[i].gravForce = gravForce;
+
+                Vector3 acceleration = planets[i].gravForce / planets[i].mass;
+
+                float newTConst = timeSlider.value * timeConst;
+                //Vector3 newPos = transform.GetChild(i).position + (planets[i].initVel * Time.fixedDeltaTime) + acceleration * Mathf.Pow(Time.fixedDeltaTime, 2) / 2;
+                Vector3 newPos = planets[i].pos + (planets[i].initVel * velConst * Time.fixedDeltaTime * newTConst) + acceleration * Mathf.Pow(Time.fixedDeltaTime * newTConst, 2) / 2;
+
+                transform.GetChild(i).position = newPos;
+                planets[i].initVel = planets[i].initVel + acceleration * Time.fixedDeltaTime * newTConst;
+                planets[i].pos = newPos;
+            }
         }
     }
 

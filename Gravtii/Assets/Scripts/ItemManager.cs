@@ -5,6 +5,8 @@ using UnityEngine.UI;
 
 public class ItemManager : MonoBehaviour
 {
+    //private GameObject planets;
+
     // Reference to the UI fields
     private InputField initVelInput;
 
@@ -46,6 +48,8 @@ public class ItemManager : MonoBehaviour
 
     private void Start()
     {
+        //planets = UIController.plp;
+
         // Reference to the functions that will be called when a UI value changes
         initVelInput.onEndEdit.AddListener(delegate { UpdateInitVel(); });
 
@@ -130,6 +134,9 @@ public class ItemManager : MonoBehaviour
         GameObject planets = GameObject.Find("Planets");
 
         GravForce.planets.Remove(GravForce.planets[id]);
+
+        //GameObject.Find("Canvas").transform.GetChild(2).GetComponent<Text>().text = planets.name;
+        //GameObject.Find("Canvas").transform.GetChild(2).GetComponent<Text>().text = GameObject.Find("Canvas").transform.name;
 
         Destroy(planets.transform.GetChild(id).gameObject);
         Destroy(gameObject);
